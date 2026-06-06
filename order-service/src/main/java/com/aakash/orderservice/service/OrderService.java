@@ -18,21 +18,34 @@ public class OrderService {
     @Autowired
     private RestTemplate template;
 
-    public TransactionResponse saveOrder(TransactionRequest request){
-        String response="";
-        Order order=request.getOrder();
-        Payment payment=request.getPayment();
+    public TransactionResponse saveOrder(TransactionRequest request) {
+
+        String response = "";
+
+        Order order = request.getOrder();
+        Payment payment = request.getPayment();
+
         payment.setOrderId(order.getId());
         payment.setAmount(order.getPrice());
 
-        //rest call
-   Payment paymentResponse= template.postForObject("http://localhost:8082/payment/doPayment",payment,Payment.class);
+        // REST Call to Payment Service
+        Payment paymentResponse = template.postForObject(
+                "http://PAYMENT-SERVICE/payment/doPayment",
+                payment,
+                Payment.class
+        );
 
+        response = paymentResponse.getPaymentStatus().equalsIgnoreCase("success")
+                ? "payment processing successful and order placed"
+                : "there is a failure in payment api, order added to cart";
 
-  response= paymentResponse.getPaymentStatus().equals("sucess")?"payment processing successful and order placed": "there is a failure in payment api, order added to cart";
+        repository.save(order);
 
-
-         repository.save(order);
-         return new TransactionResponse(order,paymentResponse.getAmount(),paymentResponse.getTransactionId(),response);
+        return new TransactionResponse(
+                order,
+                paymentResponse.getAmount(),
+                paymentResponse.getTransactionId(),
+                response
+        );
     }
 }

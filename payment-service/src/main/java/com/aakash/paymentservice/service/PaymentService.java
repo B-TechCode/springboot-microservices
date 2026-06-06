@@ -14,16 +14,19 @@ public class PaymentService {
     @Autowired
     private PaymentRepository repository;
 
-    public Payment doPayment(Payment payment){
-        payment.setPaymentStatus(paymentProcessing());
+    public Payment doPayment(Payment payment) {
 
+        payment.setPaymentStatus(paymentProcessing());
         payment.setTransactionId(UUID.randomUUID().toString());
 
         return repository.save(payment);
     }
 
-    public String paymentProcessing(){
-        //api should be 3rd party payment gateway(paypal or paytm...)
-        return new Random().nextBoolean()?"sucess":"false";
+    public String paymentProcessing() {
+        return new Random().nextBoolean() ? "success" : "failure";
+    }
+
+    public Payment findPaymentHistoryByOrderId(int orderId) {
+        return repository.findByOrderId(orderId);
     }
 }
